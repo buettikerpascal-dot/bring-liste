@@ -11,15 +11,22 @@
 #     dict(id='k46a1',   # eindeutig über alle Wochen (Bewertungen hängen an der id)
 #           title='…', minutes=30, protein='Rind', carb='Reis',
 #          # (Zutat, Menge Pascal, Menge je Elternteil, Einheit, Abteilung[, Vorrat-Knopf])  -> für EINE Mahlzeit zu dritt
-#          ing=[('Basmatireis', 103, 80, 'g', V, 'Basmatireis'), ('Rindsgeschnetzeltes', 131, 140, 'g', F), ('Zwiebel', 1, 0, 'Stück', V, 'Zwiebeln')],
+#          ing=[('Basmatireis', (103, 92), 70, 'g', V, 'Basmatireis'), ('Rindsgeschnetzeltes', (131, 131), 120, 'g', F), ('Zwiebel', 1, 0, 'Stück', V, 'Zwiebeln')],
 #          steps=['…'], p=lambda: pascal('Mittag', 'Reis', 'Rind', 'Rindsgeschnetzeltes', 'Olivenöl', 'über deinen Reis'),
 #          keep=None,            # None = automatisch aus der Eiweissquelle; sonst Text
 #          fresh2=None,          # None = automatisch (frischer Fisch, Spiegelei, Rösti); True = zweimal frisch kochen
 #          steps2=None, freshNote=None, note=None, inspo=False, inspoId=None, carried=False,  # carried=True: aus der Vorwoche übernommen
 #          source='https://…', sourceTitle='…', sourceSite='…'),
 #   ]
-# Familienmenge für 6 Portionen = 2 × (Menge Pascal + 2 × Menge je Elternteil). Feste Mengen (Zwiebel, Gewürz) stehen bei
-# Pascal für das ganze Gericht einer Mahlzeit und werden verdoppelt.
+# Familienmenge für 6 Portionen (Entscheid Pascal 07.11.2026) = Pascals Planmenge Mittag + Abend + 4 × Normalportion je Elternteil.
+#   Eiweiss und Kohlenhydrat: Menge Pascal als Tupel (Mittag, Abend), z.B. ('Basmatireis', (103, 92), 70, 'g', V, 'Basmatireis').
+#   Menge je Elternteil = normale Rezeptportion, NICHT mehr als Pascal (Richtwerte NORMAL unten).
+#   Feste Mengen (Zwiebel, Gewürz, Öl) stehen bei Pascal als Zahl für das Gericht einer Mahlzeit und werden verdoppelt.
+#   Gemüse total ca. 200 g pro Portion (also ca. 1200 g für 6), als feste Menge.
+NORMAL = {  # Richtwerte Normalportion pro Person und Mahlzeit, roh
+ 'Poulet': 120, 'Rind': 120, 'Schwein': 120, 'Fisch': 120, 'Lachs': 120, 'Hackfleisch': 100, 'Thunfisch (abgetropft)': 80,
+ 'Tofu': 120, 'Eier (Stück)': 2, 'Kartoffeln': 200, 'Reis': 70, 'Couscous': 70, 'Quinoa': 70, 'Polenta': 70, 'Ebly': 70,
+ 'Pasta': 80, 'Gnocchi': 200, 'Rösti': 200, 'Spätzli': 150, 'Vollkornbrot': 100, 'Gemüse total': 200}
 import json, math, os, re, sys, subprocess
 HERE = os.path.dirname(os.path.abspath(__file__)); REPO = os.path.dirname(HERE)
 KH = {  # (Mittag, Abend): Planmenge g, kcal, P, KH, F
@@ -83,7 +90,8 @@ def build_recipe(r, env):
     for t in r['ing']:
         name, pq, eq, unit, dept = t[:5]; vor = t[5] if len(t) > 5 else None
         if vor and vor not in env.get('VORRAT_LIST', []): sys.exit(f'Unbekannter Vorrat-Knopf {vor!r} bei {name}: erlaubt sind {env.get("VORRAT_LIST")}')
-        q = 2 * (pq + 2 * eq)
+        # pq als (Mittag, Abend): Pascals zwei Planportionen; sonst feste Menge für das Gericht einer Mahlzeit (×2)
+        q = (pq[0] + pq[1] if isinstance(pq, (tuple, list)) else 2 * pq) + 4 * eq
         if unit in ('Stück', 'Bund', 'Zehen', 'Zehe', 'Dose', 'Glas', 'Packung', 'Stange'): q = math.ceil(q - 1e-9)
         fam.append({'name': name, 'qty': fmt(q), 'unit': unit, 'dept': dept, 'vorrat': vor})
     orig = env['pascal']; pby = {}
