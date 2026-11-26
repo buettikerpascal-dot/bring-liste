@@ -190,17 +190,17 @@ function card(m,i){
 }
 function renderRezepte(){
   var open=R.filter(function(m){return !isDone(m);}),done=R.filter(isDone),h='';
-  if(!R.length)h+='<div class="card glass"><h2>Noch keine Rezepte</h2><p class="note">Die Rezepte für die neue Woche kommen am Samstag um 8 Uhr.</p></div>';
+  if(!R.length)h+='<div class="card glass"><h2>Noch keine Rezepte</h2><p class="note">Die Rezepte für die neue Woche kommen am Freitag um 8 Uhr.</p></div>';
   if(W.intro)h+='<p class="note" style="padding:0 4px">'+esc(W.intro)+'</p>';
   open.forEach(function(m){h+=card(m,R.indexOf(m));});
-  if(R.length&&!open.length)h+='<div class="card glass"><h2>Alles gekocht</h2><p class="note">Die neuen Rezepte kommen am Samstag um 8 Uhr.</p></div>';
+  if(R.length&&!open.length)h+='<div class="card glass"><h2>Alles gekocht</h2><p class="note">Die neuen Rezepte kommen am Freitag um 8 Uhr.</p></div>';
   if(done.length){
     h+='<div class="label" style="padding:6px 4px 0">Gekocht</div><div class="done-list glass">';
     done.forEach(function(m){h+='<button class="done-row" data-open="'+esc(m.id)+'">'+ICON_OK+'<span class="t">'+esc(m.title)+'</span><span class="num" style="font-size:12px">'+esc(fdate(S.gekocht[m.id]))+'</span></button>';});
     h+='</div>';
   }
-  if(R.length&&R.every(function(m){return m.portions===6;}))h+='<p class="note" style="padding:4px 4px 0">Jedes Rezept reicht für zwei Mahlzeiten zu dritt. Wann ihr was kocht, entscheidet ihr. Am Samstag um 8 Uhr kommen die neuen Rezepte; was nicht als gekocht abgehakt ist, kann einmal in die neue Woche wandern.</p>';
-  else if(R.length)h+='<p class="note" style="padding:4px 4px 0">Wann ihr was kocht, entscheidet ihr. Am Samstag um 8 Uhr kommen die neuen Rezepte. Bitte Gekochtes abhaken, sonst kann es in die neue Woche wandern.</p>';
+  if(R.length&&R.every(function(m){return m.portions===6;}))h+='<p class="note" style="padding:4px 4px 0">Jedes Rezept reicht für zwei Mahlzeiten zu dritt. Wann ihr was kocht, entscheidet ihr. Am Freitag um 8 Uhr kommen die neuen Rezepte; was nicht als gekocht abgehakt ist, kann einmal in die neue Woche wandern.</p>';
+  else if(R.length)h+='<p class="note" style="padding:4px 4px 0">Wann ihr was kocht, entscheidet ihr. Am Freitag um 8 Uhr kommen die neuen Rezepte. Bitte Gekochtes abhaken, sonst kann es in die neue Woche wandern.</p>';
   el('v-rezepte').innerHTML=h;
 }
 
@@ -220,7 +220,7 @@ function openRecipe(id){
   var m=find(id);if(!m)return;var r=S.ratings[id],dn=isDone(m);
   var h='<div class="in" role="dialog" aria-modal="true" aria-label="'+esc(m.title)+'"><div class="bgfx" aria-hidden="true"></div>';
   h+='<div class="top"><div style="display:flex;flex-direction:column;gap:8px;min-width:0"><h2>'+esc(m.title)+'</h2><span class="pills"><span class="chip">'+m.minutes+' Min</span><span class="chip">'+esc(portions(m))+'</span><span class="chip">'+esc(m.protein+' · '+m.carb)+'</span><span class="chip g">laktosefrei</span>'+(m.fresh2?'<span class="chip w">2× frisch kochen</span>':'<span class="chip">'+esc(m.keep)+'</span>')+(m.forWho?'<span class="chip">'+esc(m.forWho)+'</span>':'')+'</span></div><button class="btn" data-close>Schliessen</button></div>';
-  var nv=avoidHits(m,'nie');if(nv.length)h+='<div class="hint l">Enthält '+esc(nv.join(', '))+', das steht bei euch auf «Nie». Am Samstag kommt es nicht mehr vor.</div>';
+  var nv=avoidHits(m,'nie');if(nv.length)h+='<div class="hint l">Enthält '+esc(nv.join(', '))+', das steht bei euch auf «Nie». Bei den neuen Rezepten am Freitag kommt es nicht mehr vor.</div>';
   var lv=leerNeeded(m);if(lv.length)h+='<div class="hint n">Vorrat leer: '+esc(lv.join(', '))+'. '+(m.bring&&(m.bring.pageV||m.bring.pageVK)?(lv.length===1&&m.bring.pageVK&&m.bring.pageVK[lv[0]]?'Der Bring-Knopf nimmt '+esc(lv[0])+' mit.':'Der Bring-Knopf nimmt die Grundzutaten dieses Rezepts mit; was ihr noch habt, im Bring einfach abwählen.'):'Bitte beim Einkauf dazunehmen.')+'</div>';
   if(m.fresh2)h+='<div class="hint w">'+esc(m.freshNote||'Eingekauft wird für alle Portionen, gekocht wird zweimal frisch: beim ersten Mal die Hälfte, beim zweiten Mal den Rest. Die Mengen «je Mal» stehen bei den Zutaten.')+'</div>';
   if(m.note)h+='<div class="hint n">'+esc(m.note)+'</div>';
@@ -232,7 +232,7 @@ function openRecipe(id){
   if(m.steps2&&m.steps2.length)h+='<h3 style="margin-top:6px">Beim zweiten Mal</h3><ol class="steps">'+m.steps2.map(function(s){return '<li>'+esc(s)+'</li>';}).join('')+'</ol>';
   h+='<div class="pills"><a class="btn" href="'+esc(imgUrl(m))+'" target="_blank" rel="noopener">Bilder ansehen</a>'+(m.source&&/^https?:\/\//.test(m.source)?'<a class="btn" href="'+esc(m.source)+'" target="_blank" rel="noopener">Rezept im Web</a>':'')+'</div>';
   if(m.source)h+='<p class="note">Vorlage: '+esc(m.sourceTitle||'Rezept im Web')+(m.sourceSite?' ('+esc(m.sourceSite)+')':'')+'. Mengen und Zutaten sind an deinen Plan angepasst und laktosefrei, das Original kann abweichen.</p>';
-  h+='</div><div class="card glass"><h3>Wie war es?</h3><div class="rc-act"><button class="btn good" data-rate="gut" data-id="'+esc(id)+'" aria-pressed="'+(r==='gut')+'">Gut, wieder mal</button><button class="btn bad" data-rate="nein" data-id="'+esc(id)+'" aria-pressed="'+(r==='nein')+'">Nicht nochmal</button></div><p class="note">Fliesst in die Vorschläge am Samstag ein. «Nicht nochmal» kommt nicht mehr, auch nicht als Wiederholung.</p></div>';
+  h+='</div><div class="card glass"><h3>Wie war es?</h3><div class="rc-act"><button class="btn good" data-rate="gut" data-id="'+esc(id)+'" aria-pressed="'+(r==='gut')+'">Gut, wieder mal</button><button class="btn bad" data-rate="nein" data-id="'+esc(id)+'" aria-pressed="'+(r==='nein')+'">Nicht nochmal</button></div><p class="note">Fliesst in die Vorschläge am Freitag ein. «Nicht nochmal» kommt nicht mehr, auch nicht als Wiederholung.</p></div>';
   h+='</div>';
   var sh=el('sheet');var keep=(!sh.hidden&&sh.firstChild)?sh.firstChild.scrollTop:0;sh.innerHTML=h;sh.hidden=false;sh.setAttribute('data-id',id);if(keep)sh.firstChild.scrollTop=keep;
 }
@@ -251,7 +251,7 @@ var ASSETS=null;
 if(window.claude&&window.claude.use){window.claude.use('assets').then(function(a){ASSETS=a;renderWuensche();},function(){});}
 function renderWuensche(){
   var keys=Object.keys(S.avoid).sort(function(a,b){return a.localeCompare(b,'de');});
-  var h='<div class="card glass"><h2>Inspiration</h2><p class="note">Reel, TikTok oder Rezept, das ihr ausprobieren wollt: Link einfügen, bei Bedarf Screenshot dazu und eine kurze Notiz. Am Samstag baue ich es als Rezept nach deinem Plan ein (laktosefrei, mit deiner Portion).</p>';
+  var h='<div class="card glass"><h2>Inspiration</h2><p class="note">Reel, TikTok oder Rezept, das ihr ausprobieren wollt: Link einfügen, bei Bedarf Screenshot dazu und eine kurze Notiz. Am Freitag baue ich es als Rezept nach deinem Plan ein (laktosefrei, mit deiner Portion).</p>';
   h+='<form class="frm" id="in-form" novalidate><input class="inp" id="in-url" type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Link (Instagram, TikTok, Rezeptseite)" aria-label="Link"><textarea class="inp" id="in-note" placeholder="Notiz, z.B. «Gericht ab Sekunde 20» oder «mit Lachs statt Crevetten»" aria-label="Notiz"></textarea>';
   h+=ASSETS?'<label class="note" for="in-img" style="font-weight:600">Screenshot (optional)</label><input class="inp" id="in-img" type="file" accept="image/png,image/jpeg,image/webp,image/gif">':'<p class="note">Screenshots hochladen können nur Personen mit Bearbeitungsrecht. Ohne Screenshot genügt eine gute Notiz.</p>';
   h+='<div class="row"><button class="btn primary" type="submit" id="in-btn">Zur Inspiration hinzufügen</button></div></form></div>';
@@ -264,7 +264,7 @@ function renderWuensche(){
     if(x.note)h+='<p>'+esc(x.note)+'</p>';
     h+='</div><button class="x" data-in-del="'+esc(x.id)+'" aria-label="Entfernen">×</button></div>';
   });
-  h+='</div></div><div class="card glass"><h2>Nicht gewünscht</h2><p class="note">Zutaten, die ich nicht vorschlagen soll. «Nie» kommt nie vor, «Selten» höchstens einmal pro Woche. Gilt ab den nächsten Vorschlägen am Samstag.</p>';
+  h+='</div></div><div class="card glass"><h2>Nicht gewünscht</h2><p class="note">Zutaten, die ich nicht vorschlagen soll. «Nie» kommt nie vor, «Selten» höchstens einmal pro Woche. Gilt ab den nächsten Vorschlägen am Freitag.</p>';
   h+='<form class="frm" id="av-form"><div class="row"><input class="inp" id="av-name" placeholder="z.B. Koriander, Pilze, Fenchel" autocomplete="off" aria-label="Zutat"><div class="seg" role="group" aria-label="Stufe"><button type="button" data-av-lvl-new="nie" aria-pressed="'+(avNew==='nie')+'">Nie</button><button type="button" data-av-lvl-new="selten" aria-pressed="'+(avNew==='selten')+'">Selten</button></div><button class="btn primary" type="submit">Hinzufügen</button></div></form><div>';
   if(!keys.length)h+='<p class="note">Noch nichts eingetragen.</p>';
   keys.forEach(function(k){var lv=S.avoid[k],n=R.filter(function(m){return avoidHits(m).indexOf(k)>=0;}).length;
